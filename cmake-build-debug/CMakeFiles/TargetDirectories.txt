@@ -1,0 +1,12 @@
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/CMakeFiles/FileSystemProject.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/CMakeFiles/edit_cache.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/src/CMakeFiles/edit_cache.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/src/CMakeFiles/rebuild_cache.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/src/library/CMakeFiles/Disk.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/src/library/CMakeFiles/FileSystem.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/src/library/CMakeFiles/FileSystemManager.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/src/library/CMakeFiles/edit_cache.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/src/library/CMakeFiles/rebuild_cache.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/src/shell/CMakeFiles/edit_cache.dir
+E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug/src/shell/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libShell.a CMakeFiles/Shell.dir/sfssh.cpp.o
+/usr/bin/ranlib libShell.a

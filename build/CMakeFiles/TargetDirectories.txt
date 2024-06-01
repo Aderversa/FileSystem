@@ -1,0 +1,11 @@
+/home/aderversa/project_study/fileSystem/build/CMakeFiles/FileSystemProject.dir
+/home/aderversa/project_study/fileSystem/build/CMakeFiles/edit_cache.dir
+/home/aderversa/project_study/fileSystem/build/CMakeFiles/rebuild_cache.dir
+/home/aderversa/project_study/fileSystem/build/src/CMakeFiles/edit_cache.dir
+/home/aderversa/project_study/fileSystem/build/src/CMakeFiles/rebuild_cache.dir
+/home/aderversa/project_study/fileSystem/build/src/library/CMakeFiles/Disk.dir
+/home/aderversa/project_study/fileSystem/build/src/library/CMakeFiles/FileSystem.dir
+/home/aderversa/project_study/fileSystem/build/src/library/CMakeFiles/edit_cache.dir
+/home/aderversa/project_study/fileSystem/build/src/library/CMakeFiles/rebuild_cache.dir
+/home/aderversa/project_study/fileSystem/build/src/shell/CMakeFiles/edit_cache.dir
+/home/aderversa/project_study/fileSystem/build/src/shell/CMakeFiles/rebuild_cache.dir

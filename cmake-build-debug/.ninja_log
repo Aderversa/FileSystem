@@ -1,0 +1,9 @@
+# ninja log v5
+5	875	7387866691397753	src/shell/CMakeFiles/Shell.dir/sfssh.cpp.obj	9bb784d20b2c87fe
+23	522	7387868100943340	src/library/CMakeFiles/Disk.dir/disk.cpp.obj	fa8d8ca4001ec286
+881	1024	7387866692902842	src/shell/libShell.a	7533c2cb0d6584ce
+33	328	7387868098983262	src/library/CMakeFiles/FileSystem.dir/fs.cpp.obj	143e280f57d4405f
+330	471	7387868100432933	src/library/libFileSystem.a	e9c2e7734b2664fc
+660	984	7387868105477510	FileSystemProject.exe	1fbc01a247b8d5b7
+524	634	7387868102060092	src/library/libDisk.a	ff5e342a855155ee
+12	659	7387868102329353	CMakeFiles/FileSystemProject.dir/src/shell/sfssh.cpp.obj	9065e0286b0b9db4

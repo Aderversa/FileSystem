@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/FileSystemProject.dir/src/shell/sfssh.cpp.o -o FileSystemProject  src/library/libFileSystem.a src/library/libDisk.a 

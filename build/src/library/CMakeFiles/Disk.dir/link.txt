@@ -1,0 +1,2 @@
+/usr/bin/ar qc libDisk.a CMakeFiles/Disk.dir/disk.cpp.o
+/usr/bin/ranlib libDisk.a

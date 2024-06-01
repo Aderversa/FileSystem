@@ -1,0 +1,3 @@
+/tmp/tmp.loZHbubqSI/cmake-build-ubuntu22-04/CMakeFiles/FileSystem.dir
+/tmp/tmp.loZHbubqSI/cmake-build-ubuntu22-04/CMakeFiles/edit_cache.dir
+/tmp/tmp.loZHbubqSI/cmake-build-ubuntu22-04/CMakeFiles/rebuild_cache.dir

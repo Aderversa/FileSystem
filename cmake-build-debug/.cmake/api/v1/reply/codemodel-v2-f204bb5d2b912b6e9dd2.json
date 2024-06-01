@@ -1,0 +1,135 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "src",
+					"childIndexes" : 
+					[
+						2,
+						3
+					],
+					"jsonFile" : "directory-src-Debug-c94b7c2814d5a21df52c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "src"
+				},
+				{
+					"build" : "src/library",
+					"jsonFile" : "directory-src.library-Debug-8767ae9f14c1ac9a4fad.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "src/library",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				},
+				{
+					"build" : "src/shell",
+					"jsonFile" : "directory-src.shell-Debug-414dac37817a404f1f16.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.15"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "src/shell"
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					],
+					"name" : "FileSystemProject",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 2,
+					"id" : "Disk::@07a51f879e5ec2b49499",
+					"jsonFile" : "target-Disk-Debug-4a06abf1489bdb6c91f6.json",
+					"name" : "Disk",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "FileSystem::@07a51f879e5ec2b49499",
+					"jsonFile" : "target-FileSystem-Debug-7a81de77644b52207d91.json",
+					"name" : "FileSystem",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "FileSystemManager::@07a51f879e5ec2b49499",
+					"jsonFile" : "target-FileSystemManager-Debug-31a1e9d950a21e31fec1.json",
+					"name" : "FileSystemManager",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "FileSystemProject::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-FileSystemProject-Debug-3455bfc22549858dc6a9.json",
+					"name" : "FileSystemProject",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "E:/MySoftware/Clion/CLionCodeHub/FileSystem/cmake-build-debug",
+		"source" : "E:/MySoftware/Clion/CLionCodeHub/FileSystem"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}
