@@ -32,12 +32,16 @@ private:
     };
 public:
     FileSystemManager(const std::string& diskFile, int blocks);
+    void registerUser(const char* username);
+    void unregisterUser(const char* username);
 private:
     void createRootDir();
     void createHomeDir();
+    void makeDir(int inumber, const char* name);
+    bool isFileExist(std::vector<DirItem>& items, const char* name);
     void getHomeDirInumber();
     void appendDirItem(char** data, DirItem& item);
-    void writeBackDir(int inumber, std::vector<DirItem> items);
+    void writeBackDir(int inumber, std::vector<DirItem>& items);
     DirItem makeDirItem(const uint32_t& fileType, const uint32_t& fileSize, const uint32_t& inumber,
                         const uint32_t& filePermission, const char* filename);
     // 获取inumber的所有目录项, 默认程序通过某种方式已经判断了inumber对应的文件是一个目录文件
@@ -46,6 +50,7 @@ private:
     FileSystem fileSystem_;
     int rootDirInumber_ = 0;
     int homeDirInumber_;
+    int workDirInumber_;
 };
 
 

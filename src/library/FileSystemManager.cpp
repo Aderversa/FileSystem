@@ -106,7 +106,7 @@ std::vector<FileSystemManager::DirItem> FileSystemManager::getDirItems(int inumb
     return items;
 }
 
-void FileSystemManager::writeBackDir(int inumber, std::vector<DirItem> items) {
+void FileSystemManager::writeBackDir(int inumber, std::vector<DirItem>& items) {
     char* data = (char*)malloc(items.size() * sizeof(DirItem));
     char* start = data;
     if (data == NULL) {
@@ -127,7 +127,7 @@ void FileSystemManager::createHomeDir() {
     DirItem item;
     item = makeDirItem(DIR, 2 * sizeof(DirItem), homeInumber, RWX, "home");
     rootItems.emplace_back(item);
-    writeBackDir(rootDirInumber_, std::move(rootItems));
+    writeBackDir(rootDirInumber_, rootItems);
     // 根目录的信息更新完毕，准备/home目录的基本信息
     // "."应指向/home自己
     // ".."应指向其parent目录，也就是根目录
@@ -155,4 +155,70 @@ void FileSystemManager::getHomeDirInumber() {
             homeDirInumber_ = item.Inumber;
         }
     }
+}
+
+bool FileSystemManager::isFileExist(std::vector<DirItem>& items, const char* name) {
+    for (const auto& item : items) {
+        if (strcmp(item.FileName, name) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void FileSystemManager::makeDir(int inumber, const char* name) {
+    // 首先，创建/home目录这个事件，应该是在根目录/下发生的，所以根目录首先需要进行改变
+    int newDirInumber = fileSystem_.create();
+    auto parentItems = getDirItems(inumber);
+    // 看看有没有同名的文件
+    if (isFileExist(parentItems, name)) {
+        std::string err;
+        err = err + "The file: <" + name + "> is existing!\n";
+        throw std::runtime_error(err.c_str());
+    }
+    // 在父目录下创建新目录
+    DirItem item;
+    item = makeDirItem(DIR, 2 * sizeof(DirItem), newDirInumber, RWX, name);
+    parentItems.emplace_back(item);
+    writeBackDir(inumber, parentItems);
+    // 根目录的信息更新完毕，准备/home目录的基本信息
+    // "."应指向/home自己
+    // ".."应指向其parent目录，也就是根目录
+    char* data = (char*)malloc(2 * sizeof(DirItem));
+    char* start = data;
+    if (data == NULL) {
+        throw std::runtime_error("malloc() fail!\n");
+    }
+    item = makeDirItem(DIR, 2 * sizeof(DirItem), newDirInumber, RWX, ".");
+    appendDirItem(&data, item);
+    item = makeDirItem(DIR, fileSystem_.stat(inumber), inumber, RWX, "..");
+    appendDirItem(&data, item);
+    fileSystem_.write(newDirInumber, start, 2 * sizeof(DirItem), 0);
+    free(start);
+    /*
+     *如果创建失败，那就需要保证根目录原有的数据不改变.这里简单起见先不考虑操作的原子性问题
+     */
+}
+
+void FileSystemManager::registerUser(const char* username) {
+    makeDir(homeDirInumber_, username);
+}
+
+void FileSystemManager::unregisterUser(const char* username) {
+    auto items = getDirItems(homeDirInumber_);
+    for (auto it = items.begin(); it != items.end(); ++it) {
+        if (strcmp(it->FileName, username) == 0) {
+            if (it->FileType == DIR) {
+                items.erase(it);
+                writeBackDir(homeDirInumber_, items);
+                return;
+            }
+            else {
+                break;
+            }
+        }
+    }
+    std::string err;
+    err = err + "The user: <" + username + "> isn't existing!\n";
+    throw std::runtime_error(err.c_str());
 }

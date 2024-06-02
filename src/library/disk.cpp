@@ -29,8 +29,6 @@ void Disk::open(const char *path, size_t nblocks) {
 
 Disk::~Disk() {
     if (FileDescriptor > 0) {
-    	printf("%lu disk block reads\n", Reads);
-    	printf("%lu disk block writes\n", Writes);
     	close(FileDescriptor);
     	FileDescriptor = 0;
     }
