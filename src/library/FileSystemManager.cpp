@@ -383,7 +383,7 @@ bool FileSystemManager::haveWritePermission(uint32_t permission) {
 
 void FileSystemManager::rm(const char* filename) {
     auto items = getDirItems(workDirInumber_);
-    if (strcmp(filename, ".") == 0 || strcmp(filename, "..")) {
+    if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) {
         std::cerr << "System error! Can't remove this directory!" << std::endl;
     }
     for (auto it = items.begin(); it != items.end(); ++it) {
@@ -415,7 +415,7 @@ void FileSystemManager::rm(const char* filename) {
                 }
             }
             else {
-               fileSystem_.remove(it->Inumber) ;
+                fileSystem_.remove(it->Inumber) ;
                 items.erase(it);
             }
             writeBackDir(workDirInumber_, items);
@@ -448,7 +448,9 @@ void FileSystemManager::vim(const char* filename) {
         if(strncmp(str, "exit", 4) == 0) {
             break;
         }
-        text.append(str);
+        char tmp[BUFSIZ];
+        memcpy(tmp, str, strlen(str) - 1);
+        text.append(tmp);
         memset(str, 0, BUFSIZ);
     }
     if (inumber == -1) {
