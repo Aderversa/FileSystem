@@ -34,6 +34,11 @@ public:
     FileSystemManager(const std::string& diskFile, int blocks);
     void registerUser(const char* username);
     void unregisterUser(const char* username);
+    void login(const char* username);
+    void ls();
+    void mkdir(const char* filename);
+    void cd(const char* dirname);
+    void pwd();
 private:
     void createRootDir();
     void createHomeDir();
@@ -42,6 +47,8 @@ private:
     void getHomeDirInumber();
     void appendDirItem(char** data, DirItem& item);
     void writeBackDir(int inumber, std::vector<DirItem>& items);
+    std::string getDirName(int parentInumber, int childInumber);
+    std::string permissionToString(uint32_t p, uint32_t type);
     DirItem makeDirItem(const uint32_t& fileType, const uint32_t& fileSize, const uint32_t& inumber,
                         const uint32_t& filePermission, const char* filename);
     // 获取inumber的所有目录项, 默认程序通过某种方式已经判断了inumber对应的文件是一个目录文件

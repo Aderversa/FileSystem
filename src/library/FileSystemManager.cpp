@@ -3,6 +3,7 @@
 #include<string.h>
 #include<string>
 #include<iostream>
+#include<algorithm>
 
 #define USING() \
     using std::cerr; \
@@ -21,10 +22,6 @@ FileSystemManager::FileSystemManager(const std::string& diskFile, int blocks) {
         // 挂载失败的原因: MagicNumber不合法, 这通常是因为没有对磁盘进行格式化导致的
         // 需要提示用户是否需要进行格式化
         std::string answer;
-        cout << "The Disk hasn't formated, do you want to format it?" << endl;
-        cout << "(Y/N): ";
-        cin  >> answer;
-        if (answer == "Y" || answer == "y") {
             FileSystem::format(disk_.get());
             if(fileSystem_.mount(disk_.get())) {
                 // 同意格式化之后，还需要格式化好文件目录，主要是UFD和MFD
@@ -34,7 +31,6 @@ FileSystemManager::FileSystemManager(const std::string& diskFile, int blocks) {
                 createRootDir();
                 createHomeDir();
             }
-        }
     }
     // 默认将根目录存放在Inode号为0的文件中。如果不是这样，那出现的问题就是格式问题，不是本系统负责的内容
     getHomeDirInumber();
@@ -49,10 +45,10 @@ void FileSystemManager::createRootDir() {
         throw std::runtime_error("malloc() fail!\n");
     }
     // 准备一个DirItem文件名为："."指向自己
-    DirItem item = makeDirItem(DIR, initRootDirSize, RWX, inumber, ".");
+    DirItem item = makeDirItem(DIR, initRootDirSize, inumber, RWX, ".");
     appendDirItem(&data, item);
     // 准备一个DirItem文件名为：".."指向自己
-    item = makeDirItem(DIR, initRootDirSize, RWX, inumber, "..");
+    item = makeDirItem(DIR, initRootDirSize, inumber, RWX, "..");
     appendDirItem(&data, item);
     // 最后，将这个数据写入文件中
     fileSystem_.write(inumber, start, initRootDirSize, 0);
@@ -221,4 +217,144 @@ void FileSystemManager::unregisterUser(const char* username) {
     std::string err;
     err = err + "The user: <" + username + "> isn't existing!\n";
     throw std::runtime_error(err.c_str());
+}
+
+void FileSystemManager::login(const char* username) {
+    auto items = getDirItems(homeDirInumber_);
+    for (auto it = items.begin(); it != items.end(); ++it) {
+        if (strcmp(it->FileName, username) == 0) {
+            if (it->FileType == DIR) {
+                workDirInumber_ = it->Inumber;
+                return;
+            }
+            else {
+                std::string err;
+                err = err + "The user: <" + username + "> isn't existing!\n";
+                throw std::runtime_error(err.c_str());
+            }
+        }
+    }
+}
+
+void FileSystemManager::ls() {
+    USING();
+    auto items = getDirItems(workDirInumber_);
+    int maxSpace = 0;
+    for (const auto& item : items) {
+        int size = std::to_string(item.FileSize).size();
+        if (size > maxSpace) {
+            maxSpace = size;
+        }
+    }
+    maxSpace += 2;
+    for (const auto& item : items) {
+        int size = std::to_string(item.FileSize).size();
+        std::string space;
+        for (int i = 0; i < (maxSpace - size); i++) {
+            space.append(" ");
+        }
+        cout << permissionToString(item.FilePermission, item.FileType) << "  "
+             << item.FileSize << space.c_str()
+             << item.FileName << std::endl;
+    }
+}
+
+std::string FileSystemManager::permissionToString(uint32_t p, uint32_t type) {
+    std::string str;
+    switch(type) {
+        case DIR:
+            str += "d";
+            break;
+        case NORMAL:
+            str += "-";
+            break;
+        default:
+            break;
+    }
+    switch(p) {
+        case NUL:
+            str += "---";
+            break;
+        case X:
+            str += "--x";
+            break;
+        case W:
+            str += "-w-";
+            break;
+        case WX:
+            str += "-wx";
+        case R:
+            str += "r--";
+            break;
+        case RX:
+            str += "r-x";
+            break;
+        case RW:
+            str += "rw-";
+            break;
+        case RWX:
+            str += "rwx";
+            break;
+        default:
+            break;
+    }
+    return str;
+}
+
+void FileSystemManager::mkdir(const char* filename) {
+    makeDir(workDirInumber_, filename);
+}
+
+void FileSystemManager::cd(const char* dirname) {
+    auto items = getDirItems(workDirInumber_);
+    for (const auto& item : items) {
+        if (strcmp(dirname, item.FileName) == 0) {
+            if (item.FileType == DIR) {
+                workDirInumber_ = item.Inumber;
+            }
+            else {
+                std::string err;
+                err = err + "The file <" + dirname + "> isn't a directory!\n";
+                throw std::invalid_argument(err.c_str());
+            }
+        }
+    }
+}
+
+
+std::string FileSystemManager::getDirName(int parentInumber, int childInumber) {
+    auto items = getDirItems(parentInumber);
+    for (const auto& item : items) {
+        if (item.Inumber == childInumber) {
+            return std::string(item.FileName);
+        }
+    }
+}
+
+void FileSystemManager::pwd() {
+    int currentDir = workDirInumber_;
+    std::vector<std::string> names;
+    while (currentDir != rootDirInumber_) {
+        auto items = getDirItems(currentDir);
+        int dirInumber = -1;
+        for (const auto& item : items) {
+            if (strcmp(item.FileName, ".") == 0) {
+                dirInumber = item.Inumber;
+            }
+            // 目录本身是不知道自己的名字的，目录的名字存储在parent目录中
+            if (strcmp(item.FileName, "..") == 0) {
+                names.emplace_back(getDirName(item.Inumber, dirInumber));
+                currentDir = item.Inumber;
+            }
+        }
+    }
+    std::reverse(names.begin(), names.end());
+    std::cout << "/";
+    for (int i = 0 ; i < names.size(); i++) {
+        std::cout << names[i];
+        if (i < names.size() - 1) {
+            std::cout << "/";
+        }
+    }
+    std::cout << std::endl;
 }
