@@ -448,11 +448,16 @@ void FileSystemManager::vim(const char* filename) {
         if(strncmp(str, "exit", 4) == 0) {
             break;
         }
-        char tmp[BUFSIZ];
-        memcpy(tmp, str, strlen(str) - 1);
+        int n = strlen(str);
+        char* tmp = (char*)malloc(n + 1);
+        memset(tmp, 0, n + 1);
+        memcpy(tmp, str, n);
         text.append(tmp);
+        free(tmp);
+        tmp = NULL;
         memset(str, 0, BUFSIZ);
     }
+    text[text.size() - 1] = '\0';
     if (inumber == -1) {
         touch(filename);
         items = getDirItems(workDirInumber_);
