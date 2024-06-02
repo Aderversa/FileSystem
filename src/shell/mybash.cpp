@@ -114,15 +114,29 @@ void do_pwd(FileSystemManager &fsm, char *arg) {
 }
 
 void do_touch(FileSystemManager &fsm, char *arg) {
-
+    try {
+        fsm.touch(arg);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 void do_rm(FileSystemManager &fsm, char *arg) {
-
+    try {
+        fsm.rm(arg);
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 void do_cat(FileSystemManager &fsm, char *arg) {
-
+    try {
+        fsm.cat(arg);
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 void do_ls(FileSystemManager &fsm, char *arg) {
@@ -135,7 +149,11 @@ void do_ls(FileSystemManager &fsm, char *arg) {
 }
 
 void do_vim(FileSystemManager &fsm, char *arg) {
-
+    try {
+        fsm.vim(arg);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 void do_exec(FileSystemManager &fsm, char *arg) {

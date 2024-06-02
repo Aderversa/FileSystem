@@ -100,11 +100,11 @@ bool FileSystem::mount(Disk *disk) {
             // 由于这个Inode不为空，所以拥有DataBlock, 也有可能啥也没存这个Inode
             for (int k = 0; k < POINTERS_PER_INODE; k++) {
                 if(inode.Direct[k] != 0) {
-                    freeDataBlockBitmap[inode.Direct[k]] = false;
+                    freeDataBlockBitmap[inode.Direct[k] - inodeBlocks - 1] = false;
                 }
             }
             if (inode.Indirect != 0) {
-                freeDataBlockBitmap[inode.Indirect] = false;
+                freeDataBlockBitmap[inode.Indirect - inodeBlocks - 1] = false;
             }
         }
     }
@@ -211,6 +211,7 @@ ssize_t FileSystem::stat(size_t inumber) {
 ssize_t FileSystem::read(size_t inumber, char *data, size_t length, size_t offset) {
     Block block;
     Block dataBlock;
+    char* start = data;
     m_disk->read(inumber / Disk::BLOCK_SIZE + 1, block.Data);
     Inode& inode = block.Inodes[inumber % Disk::BLOCK_SIZE];
     if(offset > inode.Size) {
@@ -255,6 +256,7 @@ ssize_t FileSystem::read(size_t inumber, char *data, size_t length, size_t offse
             }
         }
     }
+    data = start;
     return readNum;
 }
 
@@ -277,9 +279,7 @@ ssize_t FileSystem::write(size_t inumber, char *data, size_t length, size_t offs
     int beginOffset = offset % Disk::BLOCK_SIZE;
     int endDataBlock = (offset + length) / Disk::BLOCK_SIZE;
     int remianWrite = (offset + length) % Disk::BLOCK_SIZE;
-    if (offset + length > inode.Size) {
-        inode.Size = offset + length;
-    }
+    inode.Size = offset + length;
     int writeNum = 0;
     if (beginOffset + length < Disk::BLOCK_SIZE) {
         Block dataBlock;

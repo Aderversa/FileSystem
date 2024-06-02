@@ -1,9 +1,13 @@
 #include "sfs/FileSystemManager.h"
 #include "sfs/fs.h"
+#include <cstdio>
 #include<string.h>
 #include<string>
+#include <unistd.h>
 #include<iostream>
 #include<algorithm>
+#include <limits>
+#include <cstdlib>
 
 #define USING() \
     using std::cerr; \
@@ -241,20 +245,21 @@ void FileSystemManager::ls() {
     auto items = getDirItems(workDirInumber_);
     int maxSpace = 0;
     for (const auto& item : items) {
-        int size = std::to_string(item.FileSize).size();
+        int size = std::to_string(fileSystem_.stat(item.Inumber)).size();
         if (size > maxSpace) {
             maxSpace = size;
         }
     }
     maxSpace += 2;
     for (const auto& item : items) {
-        int size = std::to_string(item.FileSize).size();
+        int FileSize = fileSystem_.stat(item.Inumber);
+        int size = std::to_string(FileSize).size();
         std::string space;
         for (int i = 0; i < (maxSpace - size); i++) {
             space.append(" ");
         }
         cout << permissionToString(item.FilePermission, item.FileType) << "  "
-             << item.FileSize << space.c_str()
+             << FileSize << space.c_str()
              << item.FileName << std::endl;
     }
 }
@@ -321,7 +326,6 @@ void FileSystemManager::cd(const char* dirname) {
     }
 }
 
-
 std::string FileSystemManager::getDirName(int parentInumber, int childInumber) {
     auto items = getDirItems(parentInumber);
     for (const auto& item : items) {
@@ -357,4 +361,145 @@ void FileSystemManager::pwd() {
         }
     }
     std::cout << std::endl;
+}
+
+void FileSystemManager::touch(const char* filename) {
+    auto items = getDirItems(workDirInumber_);
+    // 先看看当前目录下有没有这个文件吧
+    if (isFileExist(items, filename)) {
+        std::string err;
+        err = err + "The file <" + filename + "> is existing!\n";
+        throw std::runtime_error(err.c_str());
+    }
+    int inumber = fileSystem_.create();
+    DirItem item = makeDirItem(NORMAL, 0, inumber, RW, filename);
+    items.emplace_back(item);
+    writeBackDir(workDirInumber_, items);
+}
+
+bool FileSystemManager::haveWritePermission(uint32_t permission) {
+    return permission == W || permission == RW || permission == WX || permission == RWX;
+}
+
+void FileSystemManager::rm(const char* filename) {
+    auto items = getDirItems(workDirInumber_);
+    if (strcmp(filename, ".") == 0 || strcmp(filename, "..")) {
+        std::cerr << "System error! Can't remove this directory!" << std::endl;
+    }
+    for (auto it = items.begin(); it != items.end(); ++it) {
+        if (strcmp(filename, it->FileName) == 0) {
+            // 有没有写权限？
+            if (!haveWritePermission(it->FilePermission)) {
+                std::string err;
+                err = err + "Permission refused: can't remove <" + filename + ">\n";
+                throw std::runtime_error(err.c_str());
+            }
+            // 有写权限自然是可以删除
+            // 不过如果删除的文件是目录文件，就需要提醒一下
+            if (it->FileType == DIR) {
+                std::string answer;
+                std::cout << "The file <"
+                          << filename
+                          <<"> is a directory, it will also remove all its sub-directory" << std::endl;
+                std::cout << "Do you really want to remove it?(Y/N): ";
+                std::cin >> answer;
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                if (answer == "Y" || answer == "y") {
+                    // 对应的Inode数据已经灰飞烟灭了
+                    fileSystem_.remove(it->Inumber);
+                    // 接下来就是将目录项中的有关该文件的信息清除
+                    items.erase(it);
+                }
+                else {
+                    return;
+                }
+            }
+            else {
+               fileSystem_.remove(it->Inumber) ;
+                items.erase(it);
+            }
+            writeBackDir(workDirInumber_, items);
+            return;
+        }
+    }
+}
+
+void FileSystemManager::vim(const char* filename) {
+    // 看看这个文件存不存在
+    auto items = getDirItems(workDirInumber_);
+    int inumber = -1;
+    for (auto& item : items) {
+        if (strcmp(item.FileName, filename) == 0) {
+            if (item.FileType == DIR) {
+                throw std::runtime_error("Can't write a directory!\n");
+            }
+            if (!haveWritePermission(item.FilePermission)) {
+                std::string err;
+                err = err + "Permission refused: can't write <" + filename + ">\n";
+                throw std::runtime_error(err.c_str());
+            }
+            inumber = item.Inumber;
+        }
+    }
+    char str[BUFSIZ];
+    std::string text;
+    while(true) {
+        fgets(str, BUFSIZ, stdin);
+        if(strncmp(str, "exit", 4) == 0) {
+            break;
+        }
+        text.append(str);
+        memset(str, 0, BUFSIZ);
+    }
+    if (inumber == -1) {
+        touch(filename);
+        items = getDirItems(workDirInumber_);
+        // 这里其实可以直接找最后一个元素，因为是刚插入的新文件
+        for (auto& item : items) {
+            if (strcmp(item.FileName, filename) == 0) {
+                inumber = item.Inumber;
+                break;
+            }
+        }
+    }
+    char* data = (char*)malloc(text.size());
+    if (data == NULL) {
+        throw std::runtime_error("malloc() failed!\n");
+    }
+    try {
+        // 在这里读取的时候完全是没有问题的。
+        memcpy(data, text.c_str(), text.size());
+        fileSystem_.write(inumber, data, text.size(), 0);
+        free(data);
+    }
+    catch(const std::exception& e) {
+        throw e;
+    }
+}
+
+void FileSystemManager::cat(const char* filename) {
+    // 首先要找到对应的filename, 从目录中找filename这个操作完全可以独立成一个方法
+    auto items = getDirItems(workDirInumber_);
+    for (const auto& item : items) {
+        if (strcmp(filename, item.FileName) == 0) {
+            if (item.FileType == DIR) {
+                std::string err;
+                err = err + "cat: " + filename + ": Is a directory\n";
+                throw std::runtime_error(err);
+            }
+            char* data = (char*)malloc(fileSystem_.stat(item.Inumber));
+            if (data == NULL) {
+                throw std::runtime_error("malloc() failed!\n");
+            }
+            try {
+                fileSystem_.read(item.Inumber, data, fileSystem_.stat(item.Inumber), 0);
+                std::cout << data << std::endl;
+                free(data);
+            }
+            catch(const std::exception& e) {
+                free(data);
+                throw e;
+            }
+        }
+    }
 }
