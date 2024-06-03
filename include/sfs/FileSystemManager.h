@@ -43,6 +43,10 @@ public:
     void rm(const char* filename);
     void vim(const char* filename);
     void cat(const char* filename);
+    void copyin(const char* infile, const char* outfile);
+    void copyout(const char* outfile, const char* infile);
+    void exec(const char* filename);
+    void chmod(const char* mod, const char* filename);
 private:
     void createRootDir();
     void createHomeDir();
@@ -52,6 +56,8 @@ private:
     void appendDirItem(char** data, DirItem& item);
     void writeBackDir(int inumber, std::vector<DirItem>& items);
     bool haveWritePermission(uint32_t permission);
+    bool haveExePermission(uint32_t permission);
+    bool haveReadPermission(uint32_t permission);
     std::string getDirName(int parentInumber, int childInumber);
     std::string permissionToString(uint32_t p, uint32_t type);
     DirItem makeDirItem(const uint32_t& fileType, const uint32_t& fileSize, const uint32_t& inumber,

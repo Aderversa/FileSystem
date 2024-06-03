@@ -4,6 +4,7 @@
 #include <sfs/FileSystemManager.h>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <string>
 #include <iostream>
 #define streq(a, b) (strcmp((a), (b)) == 0)
@@ -21,6 +22,9 @@ void do_register(FileSystemManager& fsm, char* arg);
 void do_unregister(FileSystemManager& fsm, char* arg);
 void do_login(FileSystemManager& fsm, char* arg);
 void do_help(FileSystemManager& fsm, char* arg);
+void do_copyin(FileSystemManager& fsm, char* arg1, char* arg2);
+void do_copyout(FileSystemManager& fsm, char* arg1, char* arg2);
+void do_chmod(FileSystemManager& fsm, char* arg1, char* arg2);
 
 int main() {
     std::string diskname("../data/image.20");
@@ -29,12 +33,13 @@ int main() {
         char line[BUFSIZ];
         char cmd[BUFSIZ];
         char arg[BUFSIZ];
+        char arg1[BUFSIZ];
         fprintf(stderr, "$ ");
         fflush(stderr);
         if (fgets(line, BUFSIZ, stdin) == NULL) {
             break;
         }
-        int args = sscanf(line, "%s %s", cmd, arg);
+        int args = sscanf(line, "%s %s %s", cmd, arg, arg1);
         if (arg == 0) {
             continue;
         }
@@ -76,6 +81,15 @@ int main() {
         }
         else if (streq(cmd, "help")) {
             do_help(file_system_manager, arg);
+        }
+        else if (streq(cmd, "copyin")) {
+            do_copyin(file_system_manager, arg, arg1);
+        }
+        else if (streq(cmd, "copyout")) {
+            do_copyout(file_system_manager, arg, arg1);
+        }
+        else if (streq(cmd, "chmod")) {
+            do_chmod(file_system_manager, arg, arg1);
         }
         else if (streq(cmd, "exit")) {
             break;
@@ -157,7 +171,11 @@ void do_vim(FileSystemManager &fsm, char *arg) {
 }
 
 void do_exec(FileSystemManager &fsm, char *arg) {
-
+    try {
+        fsm.exec(arg);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 void do_register(FileSystemManager &fsm, char *arg) {
@@ -200,12 +218,39 @@ void do_help(FileSystemManager &fsm, char *arg) {
     cout << "register <username>    --- register a new user" << endl;
     cout << "unregister <username>  --- unregister a user if existing" << endl;
     cout << "login <username>       --- change workspace to /home/<username>" << endl;
+    cout << "copyin <infile> <outfile>  --- copy outside <infile> to inside <outfile>" << endl;
+    cout << "copyout <outfile> <infile> --- copy inside <infile> to outside <outfile>" << endl;
+    cout << "chmod <mod> <filename> --- change the permission of <filename> to <mod>" << endl;
     cout << "help                   --- print the usage of commands" << endl;
     cout << "exit                   --- exit the program" << endl;
 }
 
+void do_copyin(FileSystemManager& fsm, char* arg1, char* arg2) {
+    try {
+        fsm.copyin(arg1, arg2);
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
 
+void do_copyout(FileSystemManager& fsm, char* arg1, char* arg2) {
+    try {
+        fsm.copyout(arg1, arg2);
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
 
+void do_chmod(FileSystemManager& fsm, char* arg1, char* arg2) {
+    try {
+        fsm.chmod(arg1, arg2);
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+    }
+}
 
 
 

@@ -8,6 +8,7 @@
 #include<algorithm>
 #include <limits>
 #include <cstdlib>
+#include <filesystem>
 
 #define USING() \
     using std::cerr; \
@@ -480,6 +481,9 @@ void FileSystemManager::vim(const char* filename) {
         free(data);
     }
     catch(const std::exception& e) {
+        if (data != NULL) {
+            free(data);
+        }
         throw e;
     }
 }
@@ -489,6 +493,11 @@ void FileSystemManager::cat(const char* filename) {
     auto items = getDirItems(workDirInumber_);
     for (const auto& item : items) {
         if (strcmp(filename, item.FileName) == 0) {
+            if (!haveReadPermission(item.FilePermission)) {
+                std::string err;
+                err = err + "Permission refused: can't write <" + filename + ">\n";
+                throw std::runtime_error(err);
+            }
             if (item.FileType == DIR) {
                 std::string err;
                 err = err + "cat: " + filename + ": Is a directory\n";
@@ -509,4 +518,150 @@ void FileSystemManager::cat(const char* filename) {
             }
         }
     }
+}
+
+void FileSystemManager::copyin(const char* infile, const char* outfile) {
+    FILE *stream = fopen(infile, "r");
+    if (stream == nullptr) {
+        std::string err;
+        err = err + "Unable to open " + infile + ": " + strerror(errno) + "\n";
+        throw std::runtime_error(err);
+    }
+    std::string text;
+    char buf[BUFSIZ] = {0};
+    while(true) {
+        int readNum = fread(buf, 1, sizeof(buf), stream);
+        if (readNum <= 0) {
+            break;
+        }
+        char* tmp = (char*)malloc(readNum);
+        memset(tmp, 0, readNum);
+        memcpy(tmp, buf, readNum);
+        text.append(tmp);
+        free(tmp);
+        tmp = NULL;
+        memset(buf, 0, BUFSIZ);
+    }
+    fclose(stream);
+    auto items = getDirItems(workDirInumber_);
+    int inumber = -1;
+    for (auto& item : items) {
+        if (strcmp(item.FileName, outfile) == 0) {
+            if (item.FileType == DIR) {
+                std::string err;
+                err = err + "The directory " + outfile + " can't write!\n";
+                throw std::runtime_error(err);
+            }
+            else if (!haveWritePermission(item.FilePermission)) {
+                std::string err;
+                err = err + "Permission refused: can't write <" + outfile + ">\n";
+                throw std::runtime_error(err);
+            }
+            else {
+                inumber = item.Inumber;
+            }
+        }
+    }
+    if (inumber == -1) {
+        touch(outfile);
+        items = getDirItems(workDirInumber_);
+        // 这里其实可以直接找最后一个元素，因为是刚插入的新文件
+        for (auto& item : items) {
+            if (strcmp(item.FileName, outfile) == 0) {
+                inumber = item.Inumber;
+                break;
+            }
+        }
+    }
+    char* data = (char*)malloc(text.size());
+    if (data == NULL) {
+        throw std::runtime_error("malloc() failed!\n");
+    }
+    try {
+        // 在这里读取的时候完全是没有问题的。
+        memcpy(data, text.c_str(), text.size());
+        fileSystem_.write(inumber, data, text.size(), 0);
+        free(data);
+    }
+    catch(const std::exception& e) {
+        free(data);
+        throw e;
+    }
+}
+
+void FileSystemManager::copyout(const char* outfile, const char* infile) {
+    auto items = getDirItems(workDirInumber_);
+    int inumber = -1;
+    for (const auto& item : items) {
+        if (strcmp(infile, item.FileName) == 0) {
+            inumber = item.Inumber;
+        }
+    }
+    if (inumber == -1) {
+        std::string err;
+        err = err + "The file <" + infile + "> isn't existing!\n";
+        throw std::runtime_error(err);
+    }
+    int size = fileSystem_.stat(inumber);
+    char* data = (char*)malloc(size);
+    if (data == NULL) {
+        throw std::runtime_error("malloc() failed!\n");
+    }
+    fileSystem_.read(inumber, data, size, 0);
+    FILE *stream = fopen(outfile, "w");
+    fwrite(data, 1, size, stream);
+    fclose(stream);
+}
+
+bool FileSystemManager::haveExePermission(uint32_t permission) {
+    return permission == X || permission == WX || permission == RWX || permission == RX;
+}
+
+void FileSystemManager::exec(const char* filename) {
+    auto items = getDirItems(workDirInumber_);
+    DirItem targetItem;
+    bool found = false;
+    for (auto& item : items) {
+        if (strcmp(filename, item.FileName) == 0) {
+            targetItem = item;
+            found = true;
+        }
+    }
+    if (!found) {
+        std::string err;
+        err = err + "The file <" + filename + "> isn't existing!\n";
+        throw std::runtime_error(err);
+    }
+    if (!haveExePermission(targetItem.FilePermission)) {
+        std::string err;
+        err = err + "Permission refused: can't execute <" + filename+ ">\n";
+        throw std::runtime_error(err);
+    }
+    if (targetItem.FileType == DIR) {
+        cd(filename);
+    }
+    else {
+        std::cout << "Execute " << filename << std::endl;
+    }
+}
+
+void FileSystemManager::chmod(const char* mod, const char* filename) {
+    uint32_t permission = atoi(mod);
+    if (permission < NUL || permission > RWX) {
+        std::string err;
+        err = err + mod + " is invalid!\n";
+        throw std::invalid_argument(err);
+    }
+    auto items = getDirItems(workDirInumber_);
+    for (auto& item : items) {
+        if (strcmp(item.FileName, filename) == 0) {
+            item.FilePermission = permission;
+            break;
+        }
+    }
+    writeBackDir(workDirInumber_, items);
+}
+
+bool FileSystemManager::haveReadPermission(uint32_t permission) {
+    return permission == R || permission == RX || permission == RW || permission == RWX;
 }
