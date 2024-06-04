@@ -215,6 +215,8 @@ void do_help(FileSystemManager &fsm, char *arg) {
     cout << "ls                     --- print all files of the workspace" << endl;
     cout << "vim   <filename>       --- edit <filename>" << endl;
     cout << "exec  <filename>       --- execute <filename> if it has permission" << endl;
+    cout << "rm    <filename>       --- remove the <filename>" << endl;
+    cout << "cat   <filename>       --- print the content of <filename>" << endl;
     cout << "register <username>    --- register a new user" << endl;
     cout << "unregister <username>  --- unregister a user if existing" << endl;
     cout << "login <username>       --- change workspace to /home/<username>" << endl;
